@@ -1,24 +1,21 @@
 /**
- * function：hottv接口的内部逻辑
+ * function：排期表接口的内部逻辑
  * author：zhanglei
- * date：2018.5.28
+ * date：2018.5.31
  */
 
 const fs = require('fs');
 const path = require('path');
 
-// 获取热门影视接口
-let handleHottvData = (res, url_info) => {
+// 获取剧集详情
+let handleSchedule = (res, url_info) => {
     let data = '',
         params = [],
-        post_data, json, start = 0,
-        count = 100,
-        _maxNum = 100,
-        _start, _count, tmp;
-
+        post_data, json, _start, _count, start, count;
 
     // 获取get请求参数
     post_data = require('querystring').stringify(url_info.query);
+    console.log('参数:' + post_data);
     if (post_data) {
         try {
             params = post_data.split("&");
@@ -32,7 +29,7 @@ let handleHottvData = (res, url_info) => {
             res.writeHead(400, {
                 "Content-Type": "text/plain"
             });
-            res.end('请求参数错误');
+            res.end('error request!Please check api specs!')
             return;
         }
     }
@@ -42,24 +39,22 @@ let handleHottvData = (res, url_info) => {
         "Content-Type": "application/json"
     });
 
-    // 同步读取存储在文件中的数据
-    data = fs.readFileSync(path.resolve(__dirname, '../data/hottv.json'));
-
+    data = fs.readFileSync(path.resolve(__dirname, '../data/schedule.json'));
     json = data.toString();
-    if (start > _maxNum || start < -_maxNum || start + count < -_maxNum) {
-        json = JSON.parse(json).slice(0, _maxNum);
+
+    let _maxNum = JSON.parse(json).length;
+
+    console.log(_maxNum, start + count, start, count);
+
+    if (start >= 0 && count > 0 && start + count < _maxNum) {
+        json = JSON.parse(json).slice(start, start + count);
         res.end(JSON.stringify(json));
     } else {
-        if (start + count > 99) {
-            tmp = 99;
-        } else {
-            tmp = start + count;
-        }
-        json = JSON.parse(json).slice(start, tmp);
-        res.end(JSON.stringify(json));
+        res.end('错误，请检查参数格式');
     }
+
 }
 
 module.exports = {
-    handleHottvData
+    handleSchedule
 }

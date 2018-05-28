@@ -15,7 +15,28 @@ const sleep = time => new Promise(resolve => {
     setTimeout(resolve, time);
 });
 
+// 删除或清空文件：
+const manageLogs = (path, handle) => {
+    let files = fs.readdirSync(path);
+    files.forEach((file) => {
+        let curPath = `${path}/${file}`;
+        let stats = fs.statSync(curPath);
+        if (!stats.isDirectory()) {
+            if (handle == 'clear') {
+                fs.writeFile(curPath, "", (err) => {
+                    if (err) throw err;
+                    console.log(`清空文件${curPath}成功`);
+                });
+            }
+            if (handle == 'delete') {
+                fs.unlinkSync(curPath);
+            }
+        }
+    });
+}
+
 module.exports = {
-    writeFileSync: writeFileSync,
-    sleep: sleep
+    writeFileSync,
+    sleep,
+    manageLogs
 };
